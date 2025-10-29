@@ -11,7 +11,7 @@ DB_HOST = "localhost"      # e.g., "localhost", "db.internal", or an IP
 DB_PORT = "5432"              # Default PostgreSQL port, change if needed
 DB_NAME = "guacamole_db"      # The database name Guacamole uses
 DB_USER = "guacamole_user"    # The database user Guacamole uses
-DB_PASS = "osjiurhghnoqw53478thaoierugniu7kze5ghbiku"    # The password for that user
+DB_PASS = "guacamole_user_password"    # The password for that user
 
 # Output file path
 OUTPUT_FILE = "guacamole_connections_db_export.json"
