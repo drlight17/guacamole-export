@@ -47,24 +47,20 @@ def fetch_connections_and_params(conn):
     # This query focuses on getting the core data.
     query = """
     WITH RECURSIVE connection_group_path AS (
-      -- Базовый случай: группы, у которых нет родителя (parent_id IS NULL), это корневые группы
       SELECT
         connection_group_id,
         connection_group_name,
         parent_id,
-        -- Явно приводим тип к character varying для соответствия рекурсивному терму
         CAST(connection_group_name AS character varying) AS full_path
       FROM guacamole_connection_group
       WHERE parent_id IS NULL
 
       UNION ALL
 
-      -- Рекурсивный случай: для каждой дочерней группы, объединяем её имя с именем родительской группы
       SELECT
         cg.connection_group_id,
         cg.connection_group_name,
         cg.parent_id,
-        -- Формируем путь: родительская_группа / дочерняя_группа
         cgp.full_path || '/' || cg.connection_group_name AS full_path
       FROM guacamole_connection_group cg
       JOIN connection_group_path cgp ON cg.parent_id = cgp.connection_group_id
@@ -72,15 +68,12 @@ def fetch_connections_and_params(conn):
     SELECT
         c.connection_id,
         c.connection_name,
-        -- Используем построенный путь из CTE, предваряя его 'ROOT/'
-        'ROOT/' || COALESCE(cgp.full_path, '') AS group_path, -- Если соединение в корне, cgp.full_path будет NULL, COALESCE заменит на ''
-        c.protocol, -- Извлекаем протокол напрямую из guacamole_connection
+        'ROOT/' || COALESCE(cgp.full_path, '') AS group_path,
+        c.protocol,
         p.parameter_name,
         p.parameter_value
     FROM guacamole_connection c
-    -- LEFT JOIN с рекурсивной CTE по parent_id
     LEFT JOIN connection_group_path cgp ON c.parent_id = cgp.connection_group_id
-    -- LEFT JOIN для получения параметров
     LEFT JOIN guacamole_connection_parameter p ON c.connection_id = p.connection_id
     ORDER BY
         c.connection_name,
